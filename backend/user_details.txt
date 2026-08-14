@@ -1,0 +1,441 @@
+===============================================================================
+DOCKS2DOC DEMO USER DETAILS
+===============================================================================
+Generated from seed.ts
+Default Password: demo1234
+
+===============================================================================
+SUPER ADMIN
+===============================================================================
+User ID: usr-super-admin
+Name: Platform Super Admin
+Email: superadmin@docks2doc.com
+Password: demo1234
+Role: SUPER_ADMIN
+Company ID: PLATFORM
+Branch IDs: ["ALL"]
+Permissions: []
+Last Active: Current timestamp
+
+Access Level: Full platform access
+- Can view all companies, branches, users, loads, equipment
+- Can manage company approvals and status
+- Platform-wide administrative access
+
+===============================================================================
+CARRIER COMPANY: Swift Logistics
+===============================================================================
+Company ID: co-[random]
+Company Name: Swift Logistics
+Type: CARRIER
+DOT Number: 1234567
+MC Numbers: MC-123456
+Plan: GROWTH
+Rating: 4.5
+MRR: $3,500
+Status: ACTIVE
+
+Branch ID: br-[random]
+Branch Name: Swift Logistics — Corporate
+Address: 1234 Logistics Way
+City: Dallas
+State: TX
+Level: CORPORATE
+
+-------------------------------------------------------------------
+CARRIER ADMIN
+-------------------------------------------------------------------
+User ID: usr-[random]
+Name: Jordan Lee
+Email: carrier@docks2doc.demo
+Password: demo1234
+Role: CARRIER_CORP
+Company ID: co-[random] (Swift Logistics)
+Branch IDs: ["ALL"]
+Permissions: []
+Last Active: Current timestamp
+
+Access Level: Corporate carrier access
+- Can manage all branches for Swift Logistics
+- Can view and manage drivers, equipment, loads
+- Can assign carriers to loads
+
+-------------------------------------------------------------------
+DRIVER 1
+-------------------------------------------------------------------
+User ID: drv-[random]
+Name: Mike Johnson
+Email: mike.driver@docks2doc.demo
+Password: demo1234
+Role: DRIVER
+Company ID: co-[random] (Swift Logistics)
+Branch IDs: [br-[random]]
+Last Active: Current timestamp
+
+Driver Details:
+- Phone: 555-0101
+- Carrier ID: co-[random] (Swift Logistics)
+- Status: AVAILABLE
+- Current Tractor ID: eq-[random] (TRK-001)
+- Current Trailer ID: eq-[random] (TRL-001)
+
+License Information:
+- State: TX
+- Number: CDL-123456
+- Class: A
+- Expiry: 2025-12-31
+
+Medical Certificate:
+- Expiry: 2025-06-30
+
+Emergency Contact:
+- Name: Jane Johnson
+- Phone: 555-0102
+
+Performance:
+- Rating: 4.8/5.0
+- Loads Completed: 127
+
+-------------------------------------------------------------------
+DRIVER 2
+-------------------------------------------------------------------
+User ID: drv-[random]
+Name: Sarah Williams
+Email: sarah.driver@docks2doc.demo
+Password: demo1234
+Role: DRIVER
+Company ID: co-[random] (Swift Logistics)
+Branch IDs: [br-[random]]
+Last Active: Current timestamp
+
+Driver Details:
+- Phone: 555-0103
+- Carrier ID: co-[random] (Swift Logistics)
+- Status: ON_LOAD
+- Current Tractor ID: eq-[random] (TRK-002)
+- Current Trailer ID: eq-[random] (TRL-002)
+
+License Information:
+- State: TX
+- Number: CDL-234567
+- Class: A
+- Expiry: 2025-11-30
+
+Medical Certificate:
+- Expiry: 2025-05-15
+
+Emergency Contact:
+- Name: Tom Williams
+- Phone: 555-0104
+
+Performance:
+- Rating: 4.9/5.0
+- Loads Completed: 203
+
+-------------------------------------------------------------------
+DRIVER 3
+-------------------------------------------------------------------
+User ID: drv-[random]
+Name: Carlos Rodriguez
+Email: carlos.driver@docks2doc.demo
+Password: demo1234
+Role: DRIVER
+Company ID: co-[random] (Swift Logistics)
+Branch IDs: [br-[random]]
+Last Active: Current timestamp
+
+Driver Details:
+- Phone: 555-0105
+- Carrier ID: co-[random] (Swift Logistics)
+- Status: AVAILABLE
+- Current Tractor ID: eq-[random] (TRK-003)
+- Current Trailer ID: eq-[random] (TRL-003)
+
+License Information:
+- State: TX
+- Number: CDL-345678
+- Class: A
+- Expiry: 2026-01-15
+
+Medical Certificate:
+- Expiry: 2025-08-20
+
+Emergency Contact:
+- Name: Maria Rodriguez
+- Phone: 555-0106
+
+Performance:
+- Rating: 4.7/5.0
+- Loads Completed: 89
+
+===============================================================================
+SHIPPER/RECEIVER COMPANY: Acme Manufacturing
+===============================================================================
+Company ID: co-[random]
+Company Name: Acme Manufacturing
+Type: SHIPPER_RECEIVER
+Plan: ENTERPRISE
+Rating: 4.7
+MRR: $9,800
+Status: ACTIVE
+
+Branch ID: br-[random]
+Branch Name: Acme Manufacturing — Corporate
+Address: 5678 Industrial Blvd
+City: Chicago
+State: IL
+Level: CORPORATE
+
+-------------------------------------------------------------------
+SHIPPER ADMIN
+-------------------------------------------------------------------
+User ID: usr-[random]
+Name: Emily Chen
+Email: shipper@docks2doc.demo
+Password: demo1234
+Role: SHIPPER_RECEIVER
+Company ID: co-[random] (Acme Manufacturing)
+Branch IDs: ["ALL"]
+Permissions: []
+Last Active: Current timestamp
+
+Access Level: Corporate shipper/receiver access
+- Can manage all branches for Acme Manufacturing
+- Can create and manage loads
+- Can view load status and tracking
+
+===============================================================================
+BROKER COMPANY: Global Freight Brokers
+===============================================================================
+Company ID: co-[random]
+Company Name: Global Freight Brokers
+Type: BROKER
+MC Numbers: MC-789012
+Plan: GROWTH
+Rating: 4.6
+MRR: $3,500
+Status: ACTIVE
+
+Branch ID: br-[random]
+Branch Name: Global Freight Brokers — Corporate
+Address: 9101 Commerce Ave
+City: Atlanta
+State: GA
+Level: CORPORATE
+
+-------------------------------------------------------------------
+BROKER ADMIN
+-------------------------------------------------------------------
+User ID: usr-[random]
+Name: David Martinez
+Email: broker@docks2doc.demo
+Password: demo1234
+Role: BROKER_CORP
+Company ID: co-[random] (Global Freight Brokers)
+Branch IDs: ["ALL"]
+Permissions: []
+Last Active: Current timestamp
+
+Access Level: Corporate broker access
+- Can manage all branches for Global Freight Brokers
+- Can match carriers with shippers
+- Can view and manage loads
+
+===============================================================================
+EQUIPMENT (Swift Logistics)
+===============================================================================
+
+TRACTOR 1:
+- ID: eq-[random]
+- Unit Number: TRK-001
+- Type: TRACTOR
+- Make: Freightliner
+- Model: Cascadia
+- Year: 2022
+- VIN: 1FUJGBDR2MLSA1234
+- Plates: TX ABC-1234 (Expiry: 2025-12-31)
+- DOT Number: 1234567
+- IFTA: TX-IFTA-001
+- Insurance: Progressive (POL-123456, Expiry: 2025-06-30)
+- Branch ID: br-[random]
+- Assigned to: Mike Johnson (Driver 1)
+
+TRACTOR 2:
+- ID: eq-[random]
+- Unit Number: TRK-002
+- Type: TRACTOR
+- Make: Peterbilt
+- Model: 579
+- Year: 2023
+- VIN: 1FUJGBDR3MLSA5678
+- Plates: TX DEF-5678 (Expiry: 2025-12-31)
+- DOT Number: 1234567
+- IFTA: TX-IFTA-002
+- Insurance: Progressive (POL-123456, Expiry: 2025-06-30)
+- Branch ID: br-[random]
+- Assigned to: Sarah Williams (Driver 2)
+
+TRACTOR 3:
+- ID: eq-[random]
+- Unit Number: TRK-003
+- Type: TRACTOR
+- Make: Volvo
+- Model: VNL
+- Year: 2021
+- VIN: 1FUJGBDR4MLSA9012
+- Plates: TX GHI-9012 (Expiry: 2025-12-31)
+- DOT Number: 1234567
+- IFTA: TX-IFTA-003
+- Insurance: Progressive (POL-123456, Expiry: 2025-06-30)
+- Branch ID: br-[random]
+- Assigned to: Carlos Rodriguez (Driver 3)
+
+TRAILER 1:
+- ID: eq-[random]
+- Unit Number: TRL-001
+- Type: TRAILER
+- Make: Great Dane
+- Model: Dry Van
+- Year: 2022
+- VIN: 1GTDR1234567890123
+- Plates: TX TRL-1234 (Expiry: 2025-12-31)
+- Insurance: Progressive (POL-123456, Expiry: 2025-06-30)
+- Branch ID: br-[random]
+- Assigned to: Mike Johnson (Driver 1)
+
+TRAILER 2:
+- ID: eq-[random]
+- Unit Number: TRL-002
+- Type: TRAILER
+- Make: Wabash
+- Model: Reefer
+- Year: 2023
+- VIN: 1GTDR2345678901234
+- Plates: TX TRL-5678 (Expiry: 2025-12-31)
+- Insurance: Progressive (POL-123456, Expiry: 2025-06-30)
+- Branch ID: br-[random]
+- Assigned to: Sarah Williams (Driver 2)
+
+TRAILER 3:
+- ID: eq-[random]
+- Unit Number: TRL-003
+- Type: TRAILER
+- Make: Hyundai
+- Model: Dry Van
+- Year: 2021
+- VIN: 1GTDR3456789012345
+- Plates: TX TRL-9012 (Expiry: 2025-12-31)
+- Insurance: Progressive (POL-123456, Expiry: 2025-06-30)
+- Branch ID: br-[random]
+- Assigned to: Carlos Rodriguez (Driver 3)
+
+===============================================================================
+SAMPLE LOADS
+===============================================================================
+
+LOAD 1: D2D-24820
+- Status: IN_TRANSIT
+- Step: 6
+- Shipper: Acme Manufacturing
+- Carrier: Swift Logistics
+- Driver: Sarah Williams
+- Tractor: TRK-002
+- Trailer: TRL-002
+- Pickup: Acme Manufacturing - Distribution Center, Chicago, IL
+- Delivery: Walmart Distribution Center, Dallas, TX
+- Commodity: Electronics
+- Weight: 35,000 lbs
+- Pallets: 20
+- Equipment Type: DRY_VAN_53
+- Total Miles: 920
+- Remaining Miles: 180
+- ETA: 2024-01-17T10:00:00Z
+- On Time: Yes
+- Customer Rate: $2,800
+- Carrier Rate: $2,200
+
+LOAD 2: D2D-24821
+- Status: ASSIGNED
+- Step: 3
+- Shipper: Acme Manufacturing
+- Carrier: Swift Logistics
+- Driver: Mike Johnson
+- Tractor: TRK-001
+- Trailer: TRL-001
+- Pickup: Acme Manufacturing - Plant 2, Houston, TX
+- Delivery: Amazon Fulfillment Center, Phoenix, AZ
+- Commodity: Auto Parts
+- Weight: 42,000 lbs
+- Pallets: 24
+- Equipment Type: DRY_VAN_53
+- Total Miles: 1,170
+- Remaining Miles: 1,170
+- ETA: 2024-01-20T10:00:00Z
+- On Time: Yes
+- Customer Rate: $3,500
+- Carrier Rate: $2,800
+
+LOAD 3: D2D-24822
+- Status: DRAFT
+- Step: 1
+- Shipper: Acme Manufacturing
+- Carrier: Not assigned
+- Driver: Not assigned
+- Pickup: Acme Manufacturing - Main Plant, Chicago, IL
+- Delivery: Target Distribution Center, Los Angeles, CA
+- Commodity: Consumer Goods
+- Weight: 38,000 lbs
+- Pallets: 32
+- Equipment Type: DRY_VAN_53
+- Total Miles: 2,015
+- Remaining Miles: 2,015
+- ETA: 2024-01-25T10:00:00Z
+- On Time: Yes
+- Customer Rate: $5,500
+- Carrier Rate: $4,200
+
+===============================================================================
+QUICK REFERENCE - LOGIN CREDENTIALS
+===============================================================================
+
+SUPER_ADMIN:
+  Email: superadmin@docks2doc.com
+  Password: demo1234
+
+CARRIER_ADMIN:
+  Email: carrier@docks2doc.demo
+  Password: demo1234
+
+DRIVERS:
+  Email: mike.driver@docks2doc.demo
+  Password: demo1234
+
+  Email: sarah.driver@docks2doc.demo
+  Password: demo1234
+
+  Email: carlos.driver@docks2doc.demo
+  Password: demo1234
+
+SHIPPER_ADMIN:
+  Email: shipper@docks2doc.demo
+  Password: demo1234
+
+BROKER_ADMIN:
+  Email: broker@docks2doc.demo
+  Password: demo1234
+
+===============================================================================
+NOTES
+===============================================================================
+- All IDs marked as [random] are generated at runtime using the uid() function
+- Default password for all accounts: demo1234
+- The password can be overridden by setting the DEMO_PASSWORD environment variable
+- Last Active timestamps are set to current time when seed script runs
+- All driver licenses are Texas CDL Class A
+- All equipment is insured by Progressive
+- All equipment belongs to Swift Logistics
+- All drivers belong to Swift Logistics
+
+===============================================================================
+END OF USER DETAILS
+===============================================================================

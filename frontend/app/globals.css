@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Docks2Doc design tokens (spec §4.3)
+   ============================================================ */
+:root {
+  /* Core surfaces — cool concrete */
+  --d2d-ink: #0e1520;
+  --d2d-ink-soft: #4a5567;
+  --d2d-ink-faint: #8c97a8;
+  --d2d-surface: #ffffff;
+  --d2d-surface-sunk: #f4f6f9;
+  --d2d-line: #dfe4ec;
+  --d2d-line-strong: #c3cad6;
+
+  /* Brand — harbor blue */
+  --d2d-primary: #0b3b4c;
+  --d2d-primary-hover: #0f4e64;
+  --d2d-primary-tint: #e6f0f4;
+
+  /* Signal amber */
+  --d2d-signal: #e08a00;
+  --d2d-signal-tint: #fff4e0;
+
+  /* Lifecycle status ramp */
+  --st-draft: #6b7688;
+  --st-dispatched: #3e5fbf;
+  --st-assigned: #1e7fa8;
+  --st-at-pickup: #e08a00;
+  --st-loaded: #6b4fcb;
+  --st-in-transit: #127c6e;
+  --st-at-delivery: #e08a00;
+  --st-delivered: #1e8a4b;
+  --st-invoiced: #0b3b4c;
+  --st-paid: #14663a;
+
+  /* Alerts */
+  --d2d-danger: #c0392b;
+  --d2d-danger-tint: #fbecea;
+  --d2d-warning: #b8770a;
+  --d2d-warning-tint: #fbf1e0;
+  --d2d-success: #1e8a4b;
+  --d2d-success-tint: #e9f5ee;
+
+  /* Elevation */
+  --d2d-shadow: 0 1px 2px rgba(14, 21, 32, 0.06), 0 4px 12px rgba(14, 21, 32, 0.05);
+  --d2d-radius: 6px;
+
+  --background: var(--d2d-surface-sunk);
+  --foreground: var(--d2d-ink);
+}
+
+@theme inline {
+  /* surfaces */
+  --color-ink: var(--d2d-ink);
+  --color-ink-soft: var(--d2d-ink-soft);
+  --color-ink-faint: var(--d2d-ink-faint);
+  --color-surface: var(--d2d-surface);
+  --color-surface-sunk: var(--d2d-surface-sunk);
+  --color-line: var(--d2d-line);
+  --color-line-strong: var(--d2d-line-strong);
+
+  /* brand */
+  --color-primary: var(--d2d-primary);
+  --color-primary-hover: var(--d2d-primary-hover);
+  --color-primary-tint: var(--d2d-primary-tint);
+  --color-signal: var(--d2d-signal);
+  --color-signal-tint: var(--d2d-signal-tint);
+
+  /* status ramp */
+  --color-st-draft: var(--st-draft);
+  --color-st-dispatched: var(--st-dispatched);
+  --color-st-assigned: var(--st-assigned);
+  --color-st-at-pickup: var(--st-at-pickup);
+  --color-st-loaded: var(--st-loaded);
+  --color-st-in-transit: var(--st-in-transit);
+  --color-st-at-delivery: var(--st-at-delivery);
+  --color-st-delivered: var(--st-delivered);
+  --color-st-invoiced: var(--st-invoiced);
+  --color-st-paid: var(--st-paid);
+
+  /* alerts */
+  --color-danger: var(--d2d-danger);
+  --color-danger-tint: var(--d2d-danger-tint);
+  --color-warning: var(--d2d-warning);
+  --color-success: var(--d2d-success);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  /* fonts (wired in layout.tsx) */
+  --font-display: var(--font-archivo);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-plex-mono);
+
+  --radius: var(--d2d-radius);
+}
+
+* {
+  border-color: var(--d2d-line);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+/* Typography helpers (spec §4.4) */
+.font-display {
+  font-family: var(--font-archivo), system-ui, sans-serif;
+}
+.font-mono {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+}
+.text-display-lg {
+  font-size: 2rem;
+  line-height: 1.15;
+  font-weight: 700;
+}
+.text-display-md {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+.text-title {
+  font-size: 1.125rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+.text-body-sm {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.text-label {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.text-mono-sm {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+/* Focus ring (spec §11) */
+*:focus-visible {
+  outline: 2px solid var(--d2d-primary);
+  outline-offset: 1px;
+}
+
+/* Load Rail pulse (spec §4.6) */
+@keyframes d2d-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+.d2d-pulse {
+  animation: d2d-pulse 1.6s ease-in-out infinite;
+}
+@keyframes d2d-row-pulse {
+  0% {
+    background-color: var(--d2d-primary-tint);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+.d2d-row-pulse {
+  animation: d2d-row-pulse 0.6s ease-out 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .d2d-pulse,
+  .d2d-row-pulse {
+    animation: none;
+  }
+}
+
+/* thin scrollbars for dense data views */
+.d2d-scroll::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.d2d-scroll::-webkit-scrollbar-thumb {
+  background: var(--d2d-line-strong);
+  border-radius: 4px;
+}
