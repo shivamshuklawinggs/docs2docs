@@ -147,7 +147,7 @@ export default function DashboardPage() {
                         {exc ? exc.description : "Needs a driver assigned"}
                       </span>
                       <span className="text-[12px] text-[var(--d2d-ink-faint)]">
-                        {l.pickup.city} → {l.delivery.city}
+                        {l.pickups?.[0]?.city || "Unknown"} → {l.deliveries?.[l.deliveries.length - 1]?.city || "Unknown"}
                       </span>
                       <ChevronRight className="h-4 w-4 text-[var(--d2d-ink-faint)]" />
                     </Link>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                     <span className="font-mono text-[13px] font-medium">{l.id}</span>
                     <StatusPill status={l.status} exception={l.exceptions.some((e) => !e.resolvedAt)} size="sm" />
                     <span className="flex-1 truncate text-[12px] text-[var(--d2d-ink-soft)]">
-                      {l.pickup.city} → {l.delivery.city}
+                      {l.pickups?.[0]?.city || "Unknown"} → {l.deliveries?.[l.deliveries.length - 1]?.city || "Unknown"}
                     </span>
                     <LoadRail status={l.status} exception={l.exceptions.some((e) => !e.resolvedAt)} />
                   </Link>

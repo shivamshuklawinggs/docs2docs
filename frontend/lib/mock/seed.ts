@@ -489,6 +489,8 @@ for (let i = 0; i < 120; i++) {
 
   const pickup = makeStop(lane.from, pickupBase);
   const delivery = makeStop(lane.to, pickupBase + DAY);
+  const pickups = [pickup];
+  const deliveries = [delivery];
 
   const isHazmat = chance(0.15);
   const haz = isHazmat ? pick(HAZMAT_COMMODITIES) : null;
@@ -535,8 +537,8 @@ for (let i = 0; i < 120; i++) {
     driverId: driver?.id,
     tractorId: driver?.driver?.currentTractorId ?? (hasDriver ? pick(tractors).id : undefined),
     trailerId: driver?.driver?.currentTrailerId ?? (hasDriver ? pick(trailers).id : undefined),
-    pickup,
-    delivery,
+    pickups,
+    deliveries,
     freight: {
       commodity: haz ? haz.commodity : pick(COMMODITIES),
       pieces: int(10, 30),
@@ -549,6 +551,8 @@ for (let i = 0; i < 120; i++) {
       emergencyContact: haz ? phone() : undefined,
       temperatureF: chance(0.25) ? { min: 34, max: 40 } : undefined,
       declaredValueUsd: int(20000, 120000),
+      customerRateUsd: customerRate,
+      carrierRateUsd: status === "DRAFT" ? undefined : carrierRate,
       specialHandling: chance(0.5) ? [pick(SPECIAL_HANDLING)] : [],
     },
     equipmentType: pick(EQUIP),
@@ -557,7 +561,11 @@ for (let i = 0; i < 120; i++) {
     milesRemaining,
     etaDelivery: iso(pickupBase + DAY + int(-2, 3) * HOUR),
     onTime,
-    rates: { customerRateUsd: customerRate, carrierRateUsd: status === "DRAFT" ? undefined : carrierRate },
+    rates: { 
+      customerRateUsd: customerRate, 
+      carrierRateUsd: status === "DRAFT" ? undefined : carrierRate,
+      carrierMarginUsd: status === "DRAFT" ? undefined : customerRate - carrierRate
+    },
     references: {
       po: `PO-${int(80000, 89999)}`,
       bol: `${id.replace("D2D-", "")}-A`,
@@ -569,8 +577,8 @@ for (let i = 0; i < 120; i++) {
     currentPosition:
       status === "IN_TRANSIT"
         ? {
-            lat: (pickup.lat + delivery.lat) / 2 + (rnd() - 0.5) * 0.3,
-            lng: (pickup.lng + delivery.lng) / 2 + (rnd() - 0.5) * 0.3,
+            lat: (pickups[0].lat + deliveries[deliveries.length - 1].lat) / 2 + (rnd() - 0.5) * 0.3,
+            lng: (pickups[0].lng + deliveries[deliveries.length - 1].lng) / 2 + (rnd() - 0.5) * 0.3,
             updatedAt: iso(NOW - int(1, 10) * 60000),
             speedMph: int(0, 68),
           }
@@ -596,7 +604,7 @@ for (let i = 0; i < 120; i++) {
         signedBy: signed ? pick([shipper.name, receiver.name, driver?.name ?? "Driver"]) : undefined,
         signedAt: signed ? iso(pickupBase + int(1, 22) * HOUR) : undefined,
         signatureMethod: signed ? pick(["LIVE", "SAVED", "REMOTE"] as const) : undefined,
-        gps: signed ? { lat: pickup.lat, lng: pickup.lng } : undefined,
+        gps: signed ? { lat: pickups[0].lat, lng: pickups[0].lng } : undefined,
         auditTrail: [
           { actor: driver?.name ?? "System", action: "Uploaded", at: iso(pickupBase) },
           ...(signed ? [{ actor: shipper.name, action: "Signed", at: iso(pickupBase + HOUR) }] : []),
@@ -718,7 +726,7 @@ for (let i = 0; i < 2 && i < inTransitLoads.length; i++) {
     loadId: l.id,
     kind: "ARRIVAL_5MI",
     title: `${l.id} — 5 miles from delivery`,
-    body: `${l.delivery.facilityName}, ${l.delivery.city} ${l.delivery.state}. Prepare dock door.`,
+    body: `${l.deliveries[l.deliveries.length - 1].facilityName}, ${l.deliveries[l.deliveries.length - 1].city} ${l.deliveries[l.deliveries.length - 1].state}. Prepare dock door.`,
     at: iso(NOW - int(2, 15) * 60000),
     read: false,
     pinned: true,
@@ -731,7 +739,7 @@ while (notifications.length < 24) {
     loadId: l.id,
     kind: pick(["STATUS", "DOC", "EXCEPTION", "SYSTEM"] as const),
     title: `${l.id} — ${STATUS_LABEL[l.status]}`,
-    body: `${l.pickup.city} → ${l.delivery.city}. ${pick(["BOL uploaded", "Driver assigned", "ETA updated", "Document signed"])}.`,
+    body: `${l.pickups[0].city} → ${l.deliveries[l.deliveries.length - 1].city}. ${pick(["BOL uploaded", "Driver assigned", "ETA updated", "Document signed"])}.`,
     at: iso(NOW - int(1, 48) * HOUR),
     read: chance(0.4),
   });

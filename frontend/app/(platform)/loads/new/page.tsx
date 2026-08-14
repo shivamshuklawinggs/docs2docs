@@ -25,13 +25,15 @@ const EQUIP: { value: EquipmentType; label: string }[] = [
 ];
 const HANDLING = ["Liftgate", "Inside delivery", "Appointment required"];
 
+interface StopLocation {
+  city: string;
+  address: string;
+  facility: string;
+}
+
 interface FormState {
-  pickupCity: string;
-  pickupAddress: string;
-  pickupFacility: string;
-  deliveryCity: string;
-  deliveryAddress: string;
-  deliveryFacility: string;
+  pickups: StopLocation[];
+  deliveries: StopLocation[];
   commodity: string;
   weightLb: number;
   palletCount: number;
@@ -41,19 +43,20 @@ interface FormState {
   packingGroup: string;
   emergencyContact: string;
   declaredValueUsd: number;
+  customerRateUsd: number;
+  carrierRateUsd: number;
   equipmentType: EquipmentType;
   handling: string[];
   po: string;
-  customerRateUsd: number;
 }
 
 const INITIAL: FormState = {
-  pickupCity: "Dallas",
-  pickupAddress: "",
-  pickupFacility: FACILITY_NAMES[0],
-  deliveryCity: "Houston",
-  deliveryAddress: "",
-  deliveryFacility: FACILITY_NAMES[1],
+  pickups: [
+    { city: "Dallas", address: "", facility: FACILITY_NAMES[0] }
+  ],
+  deliveries: [
+    { city: "Houston", address: "", facility: FACILITY_NAMES[1] }
+  ],
   commodity: COMMODITIES[0],
   weightLb: 24000,
   palletCount: 20,
@@ -63,10 +66,11 @@ const INITIAL: FormState = {
   packingGroup: "",
   emergencyContact: "",
   declaredValueUsd: 45000,
+  customerRateUsd: 2400,
+  carrierRateUsd: 2000,
   equipmentType: "DRY_VAN_53",
   handling: [],
   po: "",
-  customerRateUsd: 2400,
 };
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -111,7 +115,9 @@ export default function CreateOrderPage() {
 
   const hazmatIncomplete =
     f.hazmat && (!f.unNumber || !f.hazmatClass || !f.packingGroup || !f.emergencyContact);
-  const miles = estimateMiles(f.pickupCity, f.deliveryCity);
+  const miles = f.pickups.length > 0 && f.deliveries.length > 0 
+    ? estimateMiles(f.pickups[0].city, f.deliveries[f.deliveries.length - 1].city)
+    : 0;
 
   const makeStop = (cityName: string, address: string, facility: string): Stop => {
     // Try to find the city in our CITIES object, otherwise use defaults
@@ -134,6 +140,10 @@ export default function CreateOrderPage() {
     };
   };
 
+  const makeStops = (locations: StopLocation[]): Stop[] => {
+    return locations.map(loc => makeStop(loc.city, loc.address, loc.facility));
+  };
+
   const submit = async (dispatch: boolean) => {
     if (!scope) return;
     setSubmitting(true);
@@ -147,13 +157,17 @@ export default function CreateOrderPage() {
       branchId,
       shipperId,
       receiverId,
-      pickup: makeStop(f.pickupCity, f.pickupAddress, f.pickupFacility),
-      delivery: makeStop(f.deliveryCity, f.deliveryAddress, f.deliveryFacility),
+      pickups: makeStops(f.pickups),
+      deliveries: makeStops(f.deliveries),
       equipmentType: f.equipmentType,
       requiredQualifications: f.hazmat ? ["Hazmat endorsement"] : [],
       milesTotal: miles,
       onTime: true,
-      rates: { customerRateUsd: f.customerRateUsd },
+      rates: { 
+        customerRateUsd: f.customerRateUsd,
+        carrierRateUsd: f.carrierRateUsd,
+        carrierMarginUsd: f.customerRateUsd - f.carrierRateUsd
+      },
       references: { po: f.po || undefined },
       freight: {
         commodity: f.commodity,
@@ -166,6 +180,8 @@ export default function CreateOrderPage() {
         packingGroup: f.hazmat ? f.packingGroup : undefined,
         emergencyContact: f.hazmat ? f.emergencyContact : undefined,
         declaredValueUsd: f.declaredValueUsd,
+        customerRateUsd: f.customerRateUsd,
+        carrierRateUsd: f.carrierRateUsd,
         specialHandling: f.handling,
       },
     });
@@ -207,40 +223,142 @@ export default function CreateOrderPage() {
             {step === 0 && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-label font-medium text-[var(--d2d-ink)] mb-3">Pickup Details</h3>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="City">
-                      <input className={inputCls} value={f.pickupCity} onChange={(e) => set("pickupCity", e.target.value)} placeholder="Dallas" />
-                    </Field>
-                    <Field label="Address">
-                      <input className={inputCls} value={f.pickupAddress} onChange={(e) => set("pickupAddress", e.target.value)} placeholder="123 Main Street" />
-                    </Field>
-                    <div className="sm:col-span-2">
-                      <Field label="Facility">
-                        <select className={inputCls} value={f.pickupFacility} onChange={(e) => set("pickupFacility", e.target.value)}>
-                          {FACILITY_NAMES.map((n) => <option key={n}>{n}</option>)}
-                        </select>
-                      </Field>
-                    </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-label font-medium text-[var(--d2d-ink)]">Pickup Locations</h3>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => set("pickups", [...f.pickups, { city: "", address: "", facility: FACILITY_NAMES[0] }])}
+                    >
+                      + Add pickup
+                    </Button>
                   </div>
+                  {f.pickups.map((pickup, idx) => (
+                    <div key={idx} className="mb-4 p-4 border border-[var(--d2d-line)] rounded-[var(--radius)]">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium">Pickup {idx + 1}</span>
+                        {f.pickups.length > 1 && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => set("pickups", f.pickups.filter((_, i) => i !== idx))}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Field label="City">
+                          <input 
+                            className={inputCls} 
+                            value={pickup.city} 
+                            onChange={(e) => {
+                              const newPickups = [...f.pickups];
+                              newPickups[idx].city = e.target.value;
+                              set("pickups", newPickups);
+                            }} 
+                            placeholder="Dallas" 
+                          />
+                        </Field>
+                        <Field label="Address">
+                          <input 
+                            className={inputCls} 
+                            value={pickup.address} 
+                            onChange={(e) => {
+                              const newPickups = [...f.pickups];
+                              newPickups[idx].address = e.target.value;
+                              set("pickups", newPickups);
+                            }} 
+                            placeholder="123 Main Street" 
+                          />
+                        </Field>
+                        <div className="sm:col-span-2">
+                          <Field label="Facility">
+                            <select 
+                              className={inputCls} 
+                              value={pickup.facility} 
+                              onChange={(e) => {
+                                const newPickups = [...f.pickups];
+                                newPickups[idx].facility = e.target.value;
+                                set("pickups", newPickups);
+                              }}
+                            >
+                              {FACILITY_NAMES.map((n) => <option key={n}>{n}</option>)}
+                            </select>
+                          </Field>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
                 <div>
-                  <h3 className="text-label font-medium text-[var(--d2d-ink)] mb-3">Delivery Details</h3>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="City">
-                      <input className={inputCls} value={f.deliveryCity} onChange={(e) => set("deliveryCity", e.target.value)} placeholder="Houston" />
-                    </Field>
-                    <Field label="Address">
-                      <input className={inputCls} value={f.deliveryAddress} onChange={(e) => set("deliveryAddress", e.target.value)} placeholder="456 Oak Avenue" />
-                    </Field>
-                    <div className="sm:col-span-2">
-                      <Field label="Facility">
-                        <select className={inputCls} value={f.deliveryFacility} onChange={(e) => set("deliveryFacility", e.target.value)}>
-                          {FACILITY_NAMES.map((n) => <option key={n}>{n}</option>)}
-                        </select>
-                      </Field>
-                    </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-label font-medium text-[var(--d2d-ink)]">Delivery Locations</h3>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => set("deliveries", [...f.deliveries, { city: "", address: "", facility: FACILITY_NAMES[0] }])}
+                    >
+                      + Add delivery
+                    </Button>
                   </div>
+                  {f.deliveries.map((delivery, idx) => (
+                    <div key={idx} className="mb-4 p-4 border border-[var(--d2d-line)] rounded-[var(--radius)]">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm font-medium">Delivery {idx + 1}</span>
+                        {f.deliveries.length > 1 && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => set("deliveries", f.deliveries.filter((_, i) => i !== idx))}
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Field label="City">
+                          <input 
+                            className={inputCls} 
+                            value={delivery.city} 
+                            onChange={(e) => {
+                              const newDeliveries = [...f.deliveries];
+                              newDeliveries[idx].city = e.target.value;
+                              set("deliveries", newDeliveries);
+                            }} 
+                            placeholder="Houston" 
+                          />
+                        </Field>
+                        <Field label="Address">
+                          <input 
+                            className={inputCls} 
+                            value={delivery.address} 
+                            onChange={(e) => {
+                              const newDeliveries = [...f.deliveries];
+                              newDeliveries[idx].address = e.target.value;
+                              set("deliveries", newDeliveries);
+                            }} 
+                            placeholder="456 Oak Avenue" 
+                          />
+                        </Field>
+                        <div className="sm:col-span-2">
+                          <Field label="Facility">
+                            <select 
+                              className={inputCls} 
+                              value={delivery.facility} 
+                              onChange={(e) => {
+                                const newDeliveries = [...f.deliveries];
+                                newDeliveries[idx].facility = e.target.value;
+                                set("deliveries", newDeliveries);
+                              }}
+                            >
+                              {FACILITY_NAMES.map((n) => <option key={n}>{n}</option>)}
+                            </select>
+                          </Field>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -260,6 +378,9 @@ export default function CreateOrderPage() {
                 </Field>
                 <Field label="Declared value (USD)">
                   <input type="number" className={inputCls} value={f.declaredValueUsd} onChange={(e) => set("declaredValueUsd", Number(e.target.value))} />
+                </Field>
+                <Field label="Customer rate (USD)">
+                  <input type="number" className={inputCls} value={f.customerRateUsd} onChange={(e) => set("customerRateUsd", Number(e.target.value))} />
                 </Field>
                 <label className="flex items-center gap-2 text-body-sm sm:col-span-2">
                   <input type="checkbox" checked={f.hazmat} onChange={(e) => set("hazmat", e.target.checked)} className="accent-[var(--d2d-primary)]" />
@@ -334,8 +455,8 @@ export default function CreateOrderPage() {
                 <Field label="PO number">
                   <input className={inputCls} value={f.po} onChange={(e) => set("po", e.target.value)} placeholder="PO-88214" />
                 </Field>
-                <Field label="Customer rate (USD)">
-                  <input type="number" className={inputCls} value={f.customerRateUsd} onChange={(e) => set("customerRateUsd", Number(e.target.value))} />
+                <Field label="Carrier rate (USD)">
+                  <input type="number" className={inputCls} value={f.carrierRateUsd} onChange={(e) => set("carrierRateUsd", Number(e.target.value))} />
                 </Field>
                 {hazmatIncomplete && (
                   <p className="flex items-center gap-2 text-body-sm text-[var(--d2d-danger)] sm:col-span-2">
@@ -375,7 +496,7 @@ export default function CreateOrderPage() {
             <dl className="mt-3 space-y-2 text-body-sm">
               <div className="flex justify-between">
                 <dt className="text-[var(--d2d-ink-soft)]">Lane</dt>
-                <dd className="font-mono text-[12px]">{f.pickupCity} → {f.deliveryCity}</dd>
+                <dd className="font-mono text-[12px]">{f.pickups[0]?.city || "Unknown"} → {f.deliveries[f.deliveries.length - 1]?.city || "Unknown"}</dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-[var(--d2d-ink-soft)]">Est. distance</dt>
@@ -396,6 +517,14 @@ export default function CreateOrderPage() {
               <div className="flex justify-between border-t border-[var(--d2d-line)] pt-2">
                 <dt className="font-medium">Customer rate</dt>
                 <dd className="font-mono font-medium">{fmtCurrency(f.customerRateUsd)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="text-[var(--d2d-ink-soft)]">Carrier rate</dt>
+                <dd className="font-mono text-[12px]">{fmtCurrency(f.carrierRateUsd)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="font-medium text-[var(--d2d-primary)]">Margin</dt>
+                <dd className="font-mono font-medium text-[var(--d2d-primary)]">{fmtCurrency(f.customerRateUsd - f.carrierRateUsd)}</dd>
               </div>
             </dl>
           </CardContent>

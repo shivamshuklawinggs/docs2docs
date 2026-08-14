@@ -103,7 +103,7 @@ export default function LoadDetailPage({ params }: { params: Promise<{ loadId: s
   const tractor = equipment?.find((e) => e.id === load.tractorId);
   const trailer = equipment?.find((e) => e.id === load.trailerId);
   const vis = visibleFields(role);
-  const margin = (load.rates?.customerRateUsd ?? 0) - (load.rates?.carrierRateUsd ?? 0);
+  const margin = load.rates?.carrierMarginUsd ?? (load.rates?.customerRateUsd ?? 0) - (load.rates?.carrierRateUsd ?? 0);
 
   return (
     <div>
@@ -124,7 +124,7 @@ export default function LoadDetailPage({ params }: { params: Promise<{ loadId: s
         </div>
       </div>
       <p className="mt-1 font-mono text-[13px] text-[var(--d2d-ink-soft)]">
-        {load.pickup?.city || "Unknown"}, {load.pickup?.state || ""} → {load.delivery?.city || "Unknown"}, {load.delivery?.state || ""} ·{" "}
+        {load.pickups?.[0]?.city || "Unknown"}, {load.pickups?.[0]?.state || ""} → {load.deliveries?.[load.deliveries.length - 1]?.city || "Unknown"}, {load.deliveries?.[load.deliveries.length - 1]?.state || ""} ·{" "}
         {fmtDistance(load.milesTotal || 0)} · {EQUIP_LABEL[load.equipmentType || "DRY_VAN_53"]} ·{" "}
         {fmtWeight(load.freight?.weightLb || 0)}
       </p>
@@ -203,24 +203,32 @@ export default function LoadDetailPage({ params }: { params: Promise<{ loadId: s
               <CardTitle>Stop timeline</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-body-sm">
-              <div className="flex justify-between">
-                <span className="text-[var(--d2d-ink-soft)]">Pickup arrival</span>
-                <span className="font-mono text-[12px]">
-                  {load.pickup?.actualArrival ? fmtDateTime(load.pickup.actualArrival) : "planned " + fmtDateTime(load.pickup?.windowStart || "")}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--d2d-ink-soft)]">Departed pickup</span>
-                <span className="font-mono text-[12px]">
-                  {load.pickup?.actualDeparture ? fmtDateTime(load.pickup.actualDeparture) : "—"}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--d2d-ink-soft)]">Delivery arrival</span>
-                <span className="font-mono text-[12px]">
-                  {load.delivery?.actualArrival ? fmtDateTime(load.delivery.actualArrival) : "planned " + fmtDateTime(load.delivery?.windowStart || "")}
-                </span>
-              </div>
+              {load.pickups?.map((pickup, idx) => (
+                <div key={idx} className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-[var(--d2d-ink-soft)]">Pickup {idx + 1} arrival</span>
+                    <span className="font-mono text-[12px]">
+                      {pickup.actualArrival ? fmtDateTime(pickup.actualArrival) : "planned " + fmtDateTime(pickup.windowStart || "")}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-[var(--d2d-ink-soft)]">Departed pickup {idx + 1}</span>
+                    <span className="font-mono text-[12px]">
+                      {pickup.actualDeparture ? fmtDateTime(pickup.actualDeparture) : "—"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {load.deliveries?.map((delivery, idx) => (
+                <div key={idx} className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-[var(--d2d-ink-soft)]">Delivery {idx + 1} arrival</span>
+                    <span className="font-mono text-[12px]">
+                      {delivery.actualArrival ? fmtDateTime(delivery.actualArrival) : "planned " + fmtDateTime(delivery.windowStart || "")}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </CardContent>
           </Card>
         </div>
@@ -266,41 +274,45 @@ export default function LoadDetailPage({ params }: { params: Promise<{ loadId: s
             <CardTitle>Route</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div>
-              <p className="text-label text-[var(--d2d-ink-faint)]">Pickup</p>
-              <p className="font-medium text-[var(--d2d-ink)]">{load.pickup?.facilityName || "Unknown"}</p>
-              <p className="text-body-sm text-[var(--d2d-ink-soft)]">
-                {load.pickup?.address || ""}, {load.pickup?.city || ""} {load.pickup?.state || ""}
-              </p>
-              <p className="mt-1 font-mono text-[12px] text-[var(--d2d-ink-soft)]">
-                {fmtWindow(load.pickup?.windowStart || "", load.pickup?.windowEnd || "")}
-              </p>
-              {load.pickup?.dockDoor && (
-                <p className="text-[12px] text-[var(--d2d-ink-soft)]">
-                  {load.pickup.dockDoor} · Contact {load.pickup.contactName || "Unknown"}
+            {load.pickups?.map((pickup, idx) => (
+              <div key={idx}>
+                <p className="text-label text-[var(--d2d-ink-faint)]">Pickup {idx + 1}</p>
+                <p className="font-medium text-[var(--d2d-ink)]">{pickup.facilityName || "Unknown"}</p>
+                <p className="text-body-sm text-[var(--d2d-ink-soft)]">
+                  {pickup.address || ""}, {pickup.city || ""} {pickup.state || ""}
                 </p>
-              )}
-            </div>
-            <div className="border-t border-[var(--d2d-line)] pt-4">
-              <p className="text-label text-[var(--d2d-ink-faint)]">Delivery</p>
-              <p className="font-medium text-[var(--d2d-ink)]">{load.delivery?.facilityName || "Unknown"}</p>
-              <p className="text-body-sm text-[var(--d2d-ink-soft)]">
-                {load.delivery?.address || ""}, {load.delivery?.city || ""} {load.delivery?.state || ""}
-              </p>
-              <p className="mt-1 font-mono text-[12px] text-[var(--d2d-ink-soft)]">
-                {fmtWindow(load.delivery?.windowStart || "", load.delivery?.windowEnd || "")}
-              </p>
-              {load.etaDelivery && (
-                <p className="mt-1 flex items-center gap-1.5 text-[12px]">
-                  <span className="font-mono text-[var(--d2d-ink-soft)]">
-                    ETA {fmtDateTime(load.etaDelivery)}
-                  </span>
-                  <span className={load.onTime ? "text-[var(--d2d-success)]" : "text-[var(--d2d-danger)]"}>
-                    ● {load.onTime ? "On time" : "Delayed"}
-                  </span>
+                <p className="mt-1 font-mono text-[12px] text-[var(--d2d-ink-soft)]">
+                  {fmtWindow(pickup.windowStart || "", pickup.windowEnd || "")}
                 </p>
-              )}
-            </div>
+                {pickup.dockDoor && (
+                  <p className="text-[12px] text-[var(--d2d-ink-soft)]">
+                    {pickup.dockDoor} · Contact {pickup.contactName || "Unknown"}
+                  </p>
+                )}
+              </div>
+            ))}
+            {load.deliveries?.map((delivery, idx) => (
+              <div key={idx} className="border-t border-[var(--d2d-line)] pt-4">
+                <p className="text-label text-[var(--d2d-ink-faint)]">Delivery {idx + 1}</p>
+                <p className="font-medium text-[var(--d2d-ink)]">{delivery.facilityName || "Unknown"}</p>
+                <p className="text-body-sm text-[var(--d2d-ink-soft)]">
+                  {delivery.address || ""}, {delivery.city || ""} {delivery.state || ""}
+                </p>
+                <p className="mt-1 font-mono text-[12px] text-[var(--d2d-ink-soft)]">
+                  {fmtWindow(delivery.windowStart || "", delivery.windowEnd || "")}
+                </p>
+                {idx === load.deliveries.length - 1 && load.etaDelivery && (
+                  <p className="mt-1 flex items-center gap-1.5 text-[12px]">
+                    <span className="font-mono text-[var(--d2d-ink-soft)]">
+                      ETA {fmtDateTime(load.etaDelivery)}
+                    </span>
+                    <span className={load.onTime ? "text-[var(--d2d-success)]" : "text-[var(--d2d-danger)]"}>
+                      ● {load.onTime ? "On time" : "Delayed"}
+                    </span>
+                  </p>
+                )}
+              </div>
+            ))}
           </CardContent>
         </Card>
 
@@ -455,7 +467,7 @@ export default function LoadDetailPage({ params }: { params: Promise<{ loadId: s
               <div className="mt-1 flex justify-between border-t border-[var(--d2d-line)] pt-2">
                 <span className="font-medium text-[var(--d2d-primary)]">Margin</span>
                 <span className="font-mono font-medium text-[var(--d2d-primary)]">
-                  {fmtCurrency(margin)} ·{" "}
+                  {fmtCurrency(margin)} ({fmtCurrency(load.rates?.customerRateUsd || 0)} - {fmtCurrency(load.rates?.carrierRateUsd || 0)}) ·{" "}
                   {load.rates?.customerRateUsd
                     ? ((margin / load.rates.customerRateUsd) * 100).toFixed(1)
                     : "0"}

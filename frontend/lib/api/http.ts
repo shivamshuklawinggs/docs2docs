@@ -2,8 +2,11 @@
 // Base URL + feature flag come from env so the app can run purely on the
 // in-memory mock (default) or against the real API (backend/).
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://winggs.com/docksapi/api";
-// export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://192.168.168.41:5000/api";
+export const API_BASE_URL =
+  process.env.NODE_ENV === "production"
+    ? "https://winggs.com/docksapi/api"
+    : "http://192.168.168.41:7002/api";
+// export const API_BASE_URL =  "http://192.168.168.41:7002/api";
 // The app always talks to the real MongoDB-backed API — there is no
 // in-memory/mock fallback. All reads and writes go through the backend.
 export const USE_BACKEND = true;

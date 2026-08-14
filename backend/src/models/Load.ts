@@ -34,6 +34,8 @@ const freightSchema = new mongoose.Schema(
     emergencyContact: String,
     temperatureF: { min: Number, max: Number },
     declaredValueUsd: Number,
+    customerRateUsd: Number,
+    carrierRateUsd: Number,
     specialHandling: [String],
   },
   { _id: false }
@@ -128,8 +130,8 @@ const loadSchema = new mongoose.Schema(
     driverId: String,
     tractorId: String,
     trailerId: String,
-    pickup: stopSchema,
-    delivery: stopSchema,
+    pickups: [stopSchema],
+    deliveries: [stopSchema],
     freight: freightSchema,
     equipmentType: {
       type: String,
@@ -140,7 +142,7 @@ const loadSchema = new mongoose.Schema(
     milesRemaining: Number,
     etaDelivery: String,
     onTime: { type: Boolean, default: true },
-    rates: { customerRateUsd: Number, carrierRateUsd: Number },
+    rates: { customerRateUsd: Number, carrierRateUsd: Number, carrierMarginUsd: Number },
     references: { po: String, bol: String, customerRef: String },
     documents: [docSchema],
     events: [loadEventSchema],

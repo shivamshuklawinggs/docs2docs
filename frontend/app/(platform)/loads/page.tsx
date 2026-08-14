@@ -132,10 +132,10 @@ export default function LoadBoardPage() {
                         <StatusPill status={l.status} exception={exc} size="sm" />
                       </td>
                       <td className="px-4 py-2.5 text-[var(--d2d-ink-soft)]">
-                        {l.pickup.city} → {l.delivery.city}
+                        {l.pickups?.[0]?.city || "Unknown"} → {l.deliveries?.[l.deliveries.length - 1]?.city || "Unknown"}
                       </td>
-                      <td className="px-4 py-2.5 font-mono text-[12px]">{fmtDate(l.pickup.windowStart)}</td>
-                      <td className="px-4 py-2.5 font-mono text-[12px]">{fmtDate(l.delivery.windowStart)}</td>
+                      <td className="px-4 py-2.5 font-mono text-[12px]">{fmtDate(l.pickups?.[0]?.windowStart)}</td>
+                      <td className="px-4 py-2.5 font-mono text-[12px]">{fmtDate(l.deliveries?.[l.deliveries.length - 1]?.windowStart)}</td>
                       <td className="px-4 py-2.5 text-[var(--d2d-ink-soft)]">{drivers?.find((d) => d.id === l.driverId)?.name ?? "—"}</td>
                       <td className="px-4 py-2.5">
                         <div className="flex justify-end">

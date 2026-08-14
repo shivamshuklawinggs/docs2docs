@@ -47,7 +47,8 @@ function signDoc(load: Load, type: "BOL" | "POD", signer: string) {
   doc.signedBy = signer;
   doc.signedAt = now();
   doc.signatureMethod = "LIVE";
-  doc.gps = { lat: load.pickup.lat, lng: load.pickup.lng };
+  const firstPickup = load.pickups?.[0];
+  doc.gps = firstPickup ? { lat: firstPickup.lat, lng: firstPickup.lng } : { lat: 0, lng: 0 };
   doc.auditTrail.push({ actor: signer, action: "Signed", at: now() });
   pushEvent(load, {
     at: now(),
@@ -108,27 +109,37 @@ export function advanceLoad(id: string): Load | null {
   const stamp = now();
   switch (next) {
     case "AT_PICKUP":
-      load.pickup.actualArrival = stamp;
+      if (load.pickups && load.pickups.length > 0) {
+        load.pickups[0].actualArrival = stamp;
+      }
       break;
     case "LOADED":
-      load.pickup.actualDeparture = stamp;
+      if (load.pickups && load.pickups.length > 0) {
+        load.pickups[0].actualDeparture = stamp;
+      }
       signDoc(load, "BOL", "Shipper");
       break;
     case "IN_TRANSIT":
       load.milesRemaining = Math.round(load.milesTotal * 0.85);
+      const firstPickup = load.pickups?.[0];
+      const lastDelivery = load.deliveries?.[load.deliveries.length - 1];
       load.currentPosition = {
-        lat: (load.pickup.lat + load.delivery.lat) / 2,
-        lng: (load.pickup.lng + load.delivery.lng) / 2,
+        lat: firstPickup && lastDelivery ? (firstPickup.lat + lastDelivery.lat) / 2 : 0,
+        lng: firstPickup && lastDelivery ? (firstPickup.lng + lastDelivery.lng) / 2 : 0,
         updatedAt: stamp,
         speedMph: 62,
       };
       break;
     case "AT_DELIVERY":
-      load.delivery.actualArrival = stamp;
+      if (load.deliveries && load.deliveries.length > 0) {
+        load.deliveries[load.deliveries.length - 1].actualArrival = stamp;
+      }
       load.milesRemaining = 0;
       break;
     case "DELIVERED":
-      load.delivery.actualDeparture = stamp;
+      if (load.deliveries && load.deliveries.length > 0) {
+        load.deliveries[load.deliveries.length - 1].actualDeparture = stamp;
+      }
       signDoc(load, "POD", "Receiver");
       break;
     case "INVOICED":
@@ -156,12 +167,13 @@ export function triggerArrival(id: string): Load | null {
     type: "GEOFENCE",
     description: "5-mile arrival alert fired — receiver notified, dock door panel opened",
   });
+  const lastDelivery = load.deliveries?.[load.deliveries.length - 1];
   DB.notifications.unshift({
     id: uid("ntf"),
     loadId: load.id,
     kind: "ARRIVAL_5MI",
     title: `${load.id} — 5 miles from delivery`,
-    body: `${load.delivery.facilityName}, ${load.delivery.city} ${load.delivery.state}. Prepare dock door.`,
+    body: `${lastDelivery?.facilityName || "Delivery facility"}, ${lastDelivery?.city || ""} ${lastDelivery?.state || ""}. Prepare dock door.`,
     at: now(),
     read: false,
     pinned: true,
@@ -207,10 +219,18 @@ export function resetLoad(id: string): Load | null {
     restored.exceptions = [];
     restored.currentPosition = undefined;
     restored.onTime = true;
-    restored.pickup.actualArrival = undefined;
-    restored.pickup.actualDeparture = undefined;
-    restored.delivery.actualArrival = undefined;
-    restored.delivery.actualDeparture = undefined;
+    if (restored.pickups) {
+      restored.pickups.forEach((pickup) => {
+        pickup.actualArrival = undefined;
+        pickup.actualDeparture = undefined;
+      });
+    }
+    if (restored.deliveries) {
+      restored.deliveries.forEach((delivery) => {
+        delivery.actualArrival = undefined;
+        delivery.actualDeparture = undefined;
+      });
+    }
     restored.events = [
       {
         id: uid("evt"),

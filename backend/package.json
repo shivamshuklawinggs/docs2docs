@@ -6,7 +6,7 @@
   "main": "src/app.ts",
   "type": "commonjs",
   "scripts": {
-    "start": "node dist/server.js",
+    "start": "npm run build && node dist/server.js",
     "dev": "nodemon --exec tsx src/server.ts",
     "dev:watch": "nodemon --watch src --exec tsx src/server.ts",
     "build": "tsc",

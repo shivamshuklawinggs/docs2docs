@@ -184,7 +184,7 @@ function LoadKanbanCard({
         <StatusPill status={load.status} exception={exc} size="sm" />
       </div>
       <p className="mt-1 text-[12px] text-[var(--d2d-ink-soft)]">
-        {load.pickup.city} → {load.delivery.city}
+        {load.pickups?.[0]?.city || "Unknown"} → {load.deliveries?.[load.deliveries.length - 1]?.city || "Unknown"}
       </p>
       {canDrop && !load.driverId && (
         <p className="mt-1 text-[11px] italic text-[var(--d2d-ink-faint)]">Drop a driver to assign</p>

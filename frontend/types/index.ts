@@ -92,6 +92,8 @@ export interface Freight {
   emergencyContact?: string;
   temperatureF?: { min: number; max: number };
   declaredValueUsd: number;
+  customerRateUsd?: number;
+  carrierRateUsd?: number;
   specialHandling: string[];
 }
 
@@ -112,8 +114,8 @@ export interface Load {
   driverId?: string;
   tractorId?: string;
   trailerId?: string;
-  pickup: Stop;
-  delivery: Stop;
+  pickups: Stop[];
+  deliveries: Stop[];
   freight: Freight;
   equipmentType: EquipmentType;
   requiredQualifications: string[];
@@ -121,7 +123,7 @@ export interface Load {
   milesRemaining?: number;
   etaDelivery?: string;
   onTime: boolean;
-  rates: { customerRateUsd: number; carrierRateUsd?: number };
+  rates: { customerRateUsd: number; carrierRateUsd?: number; carrierMarginUsd?: number };
   references: { po?: string; bol?: string; customerRef?: string };
   documents: Doc[];
   events: LoadEvent[];

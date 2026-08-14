@@ -18,7 +18,9 @@ function matchesFilter(load: any, filter: any): boolean {
   if (filter.equipmentType && load.equipmentType !== filter.equipmentType) return false;
   if (filter.search) {
     const q = filter.search.toLowerCase();
-    const hay = `${load._id} ${load.pickup?.city ?? ""} ${load.delivery?.city ?? ""} ${load.references?.po ?? ""}`.toLowerCase();
+    const pickupCity = load.pickups?.[0]?.city ?? "";
+    const deliveryCity = load.deliveries?.[load.deliveries.length - 1]?.city ?? "";
+    const hay = `${load._id} ${pickupCity} ${deliveryCity} ${load.references?.po ?? ""}`.toLowerCase();
     if (!hay.includes(q)) return false;
   }
   if (filter.savedView === "needs-driver") return !load.driverId && load.status !== "DRAFT";
@@ -53,7 +55,8 @@ function signDoc(load: any, type: string, signer: string) {
   doc.signedBy = signer;
   doc.signedAt = now();
   doc.signatureMethod = "LIVE";
-  doc.gps = { lat: load.pickup.lat, lng: load.pickup.lng };
+  const firstPickup = load.pickups?.[0];
+  doc.gps = firstPickup ? { lat: firstPickup.lat, lng: firstPickup.lng } : { lat: 0, lng: 0 };
   doc.auditTrail.push({ actor: signer, action: "Signed", at: now() });
   pushEvent(load, {
     at: now(),
@@ -462,27 +465,37 @@ const advanceLoad = asyncHandler(async (req: Request, res: Response) => {
 
     switch (next) {
       case "AT_PICKUP":
-        (load as any).pickup.actualArrival = stamp;
+        if (load.pickups && load.pickups.length > 0) {
+          (load.pickups[0] as any).actualArrival = stamp;
+        }
         break;
       case "LOADED":
-        (load as any).pickup.actualDeparture = stamp;
+        if (load.pickups && load.pickups.length > 0) {
+          (load.pickups[0] as any).actualDeparture = stamp;
+        }
         signDoc(load, "BOL", "Shipper");
         break;
       case "IN_TRANSIT":
         load.milesRemaining = Math.round((load.milesTotal || 0) * 0.85);
+        const firstPickup = load.pickups?.[0];
+        const lastDelivery = load.deliveries?.[load.deliveries.length - 1];
         load.currentPosition = {
-          lat: ((load as any).pickup.lat + (load as any).delivery.lat) / 2,
-          lng: ((load as any).pickup.lng + (load as any).delivery.lng) / 2,
+          lat: firstPickup && lastDelivery ? (firstPickup!.lat! + lastDelivery!.lat!) / 2 : 0,
+          lng: firstPickup && lastDelivery ? (firstPickup!.lng! + lastDelivery!.lng!) / 2 : 0,
           updatedAt: stamp,
           speedMph: 62,
         };
         break;
       case "AT_DELIVERY":
-        (load as any).delivery.actualArrival = stamp;
+        if (load.deliveries && load.deliveries.length > 0) {
+          (load.deliveries[load.deliveries.length - 1] as any).actualArrival = stamp;
+        }
         load.milesRemaining = 0;
         break;
       case "DELIVERED":
-        (load as any).delivery.actualDeparture = stamp;
+        if (load.deliveries && load.deliveries.length > 0) {
+          (load.deliveries[load.deliveries.length - 1] as any).actualDeparture = stamp;
+        }
         signDoc(load, "POD", "Receiver");
         // Update driver status when load is delivered
         if (load.driverId) {
@@ -538,13 +551,14 @@ const triggerArrival = asyncHandler(async (req: Request, res: Response) => {
   });
   await load.save();
 
+  const lastDelivery = load.deliveries?.[load.deliveries.length - 1];
   await Notification.create({
     _id: uid("ntf"),
     loadId: load._id,
     companyId: load.branchId || req.user?.companyId, // Add companyId for proper filtering
     kind: "ARRIVAL_5MI",
     title: `${load.id} — 5 miles from delivery`,
-    body: `${(load as any).delivery.facilityName}, ${(load as any).delivery.city} ${(load as any).delivery.state}. Prepare dock door.`,
+    body: `${lastDelivery?.facilityName || "Delivery facility"}, ${lastDelivery?.city || ""} ${lastDelivery?.state || ""}. Prepare dock door.`,
     at: now(),
     read: false,
     pinned: true,
@@ -596,10 +610,18 @@ const resetLoad = asyncHandler(async (req: Request, res: Response) => {
   (load as any).exceptions = [];
   load.currentPosition = undefined;
   load.onTime = true;
-  (load as any).pickup.actualArrival = undefined;
-  (load as any).pickup.actualDeparture = undefined;
-  (load as any).delivery.actualArrival = undefined;
-  (load as any).delivery.actualDeparture = undefined;
+  if (load.pickups) {
+    load.pickups.forEach((pickup: any) => {
+      pickup.actualArrival = undefined;
+      pickup.actualDeparture = undefined;
+    });
+  }
+  if (load.deliveries) {
+    load.deliveries.forEach((delivery: any) => {
+      delivery.actualArrival = undefined;
+      delivery.actualDeparture = undefined;
+    });
+  }
   (load as any).events = [
     {
       id: uid("evt"),
